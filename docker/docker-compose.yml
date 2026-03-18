@@ -5,9 +5,11 @@ services:
       dockerfile: Dockerfile
     image: arc380_ros2:latest
     container_name: arc380_ros2
-    ports:
-      - "6080:6080"   # noVNC web interface  →  http://localhost:6080/vnc.html
-      - "5900:5900"   # VNC direct access    →  localhost:5900 (no password)
+    network_mode: host
+
+    volumes:
+      - ../workshops:/workshops
+
     environment:
       - DISPLAY=:1
       - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
@@ -15,10 +17,7 @@ services:
       - LIBGL_ALWAYS_SOFTWARE=1
       - GALLIUM_DRIVER=llvmpipe
       - QT_X11_NO_MITSHM=1
-    # Allows "host.docker.internal" to resolve inside the container on Linux hosts.
-    # On Windows/macOS Docker Desktop this is injected automatically.
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+
     # Shared memory — improves DDS performance
     ipc: host
     stdin_open: true

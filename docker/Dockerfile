@@ -67,13 +67,12 @@ FROM base AS workspace
 # ── Clone and build workspace ─────────────────────────────────────────────────
 WORKDIR /ros2_ws
 RUN git clone https://github.com/AdelResearchGroup/arc380_s26.git . && \
-    git checkout c527f07782f82882a3bd6b04a6fbc6878184820c && \
     /bin/bash -c "\
         source /opt/ros/jazzy/setup.bash && \
         apt-get update && \
         rosdep install --from-paths src --ignore-src -r -y \
             --skip-keys='warehouse_ros_mongo ament_python joint_state_publisher joint_state_publisher_gui' && \
-        colcon build --symlink-install"
+        colcon build"
 
 
 FROM base AS final
