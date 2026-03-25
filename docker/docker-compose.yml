@@ -9,6 +9,7 @@ services:
 
     volumes:
       - ../workshops:/workshops
+      - ../scripts:/scripts
 
     environment:
       - DISPLAY=:1
@@ -37,9 +38,7 @@ services:
 #
 #  Open a shell inside the container (e.g., to run Python scripts):
 #    docker exec -it arc380_ros2 bash
-#      then:  source /opt/ros/jazzy/setup.bash
-#             source /ros2_ws/install/setup.bash
-#             python3 your_script.py
+#      then:  python3 your_script.py
 #
 #  Stop:
 #    docker compose down

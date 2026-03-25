@@ -61,12 +61,15 @@ RUN apt-get update && apt-get install -y \
 # ── rosdep init ───────────────────────────────────────────────────────────────
 RUN rosdep init && rosdep update
 
+RUN python3 -m pip install --no-cache-dir --break-system-packages "protobuf==6.31.1"
+
 
 FROM base AS workspace
 
 # ── Clone and build workspace ─────────────────────────────────────────────────
 WORKDIR /ros2_ws
 RUN git clone https://github.com/AdelResearchGroup/arc380_s26.git . && \
+    git checkout 1df52990b2c2080aba8816860ad372373da5ec5c && \
     /bin/bash -c "\
         source /opt/ros/jazzy/setup.bash && \
         apt-get update && \
@@ -94,6 +97,9 @@ ENV QT_X11_NO_MITSHM=1
 ENV DISPLAY=:1
 # Allow Gazebo to resolve package:// URIs for robot meshes
 ENV GZ_SIM_RESOURCE_PATH=/ros2_ws/install/abb_irb120_description/share
+
+RUN echo 'source /opt/ros/jazzy/setup.bash' >> /etc/bash.bashrc && \
+    echo 'source /ros2_ws/install/setup.bash' >> /etc/bash.bashrc
 
 # ── Entrypoint ────────────────────────────────────────────────────────────────
 COPY entrypoint.sh /entrypoint.sh
