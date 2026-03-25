@@ -69,7 +69,6 @@ FROM base AS workspace
 # ── Clone and build workspace ─────────────────────────────────────────────────
 WORKDIR /ros2_ws
 RUN git clone https://github.com/AdelResearchGroup/arc380_s26.git . && \
-    git checkout 1df52990b2c2080aba8816860ad372373da5ec5c && \
     /bin/bash -c "\
         source /opt/ros/jazzy/setup.bash && \
         apt-get update && \

@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-
-import copy
 from typing import Optional
 
 import rclpy
@@ -26,7 +23,7 @@ from moveit_msgs.msg import (
 
 from shape_msgs.msg import SolidPrimitive
 from geometry_msgs.msg import PoseStamped
-from control_msgs.action import FollowJointTrajectory
+from control_msgs.action import FollowJointTrajectory, ParallelGripperCommand
 
 
 class PlanAndExecuteClient(Node):
@@ -58,10 +55,10 @@ class PlanAndExecuteClient(Node):
             FollowJointTrajectory,
             "/arm_controller/follow_joint_trajectory",
         )
-        self.gripper_traj_ac = ActionClient(
+        self.gripper_cmd_ac = ActionClient(
             self,
-            FollowJointTrajectory,
-            "/gripper_controller/follow_joint_trajectory",
+            ParallelGripperCommand,
+            "/gripper_controller/gripper_cmd",
         )
 
     @staticmethod
@@ -185,12 +182,12 @@ class PlanAndExecuteClient(Node):
         group_name: str,
         link_name: str,
         frame_id: str,
-        start_joint_names: list[str],
-        start_joint_positions: list[float],
         goal_xyz: tuple[float, float, float],
+        start_joint_names: list[str] | None = None,
+        start_joint_positions: list[float] | None = None,
         goal_quat_wxyz: tuple[float, float, float, float] = (1.0, 0.0, 0.0, 0.0),
-        pos_tolerance_xyz: tuple[float, float, float] = (0.005, 0.005, 0.005),
-        ori_tolerance_rpy: tuple[float, float, float] = (0.1, 0.1, 0.1),
+        pos_tolerance_xyz: tuple[float, float, float] = (0.001, 0.001, 0.001),
+        ori_tolerance_rpy: tuple[float, float, float] = (0.001, 0.001, 0.001),
         allowed_planning_time: float = 5.0,
         num_attempts: int = 5,
         max_velocity_scaling: float = 0.2,
@@ -202,9 +199,10 @@ class PlanAndExecuteClient(Node):
         if planner_id:
             mpr.planner_id = planner_id
 
-        mpr.start_state = self._make_start_state(
-            start_joint_names, start_joint_positions
-        )
+        if start_joint_names is not None and start_joint_positions is not None:
+            mpr.start_state = self._make_start_state(
+                start_joint_names, start_joint_positions
+            )
 
         constraints = Constraints()
         constraints.position_constraints = [
@@ -235,10 +233,10 @@ class PlanAndExecuteClient(Node):
     def plan_gripper_to_joint_positions(
         self,
         group_name: str,
-        start_joint_names: list[str],
-        start_joint_positions: list[float],
         goal_joint_names: list[str],
         goal_joint_positions: list[float],
+        start_joint_names: list[str] | None = None,
+        start_joint_positions: list[float] | None = None,
         tolerance: float = 1e-3,
         allowed_planning_time: float = 2.0,
         num_attempts: int = 3,
@@ -262,9 +260,10 @@ class PlanAndExecuteClient(Node):
         if planner_id:
             mpr.planner_id = planner_id
 
-        mpr.start_state = self._make_start_state(
-            start_joint_names, start_joint_positions
-        )
+        if start_joint_names is not None and start_joint_positions is not None:
+            mpr.start_state = self._make_start_state(
+                start_joint_names, start_joint_positions
+            )
 
         constraints = Constraints()
         constraints.joint_constraints = [
@@ -387,71 +386,98 @@ class PlanAndExecuteClient(Node):
             self.arm_traj_ac, joint_names, positions, duration_sec
         )
 
-    def send_gripper_trajectory(
+    def send_gripper_command(
         self,
-        joint_names: list[str],
-        positions: list[float],
-        duration_sec: float = 1.0,
+        position: float,
+        max_velocity: float = 0.02,
+        max_effort: float = 0.0,
+        joint_name: str = "left_finger_joint",
     ) -> bool:
-        return self._send_follow_joint_trajectory(
-            self.gripper_traj_ac, joint_names, positions, duration_sec
+        if not self.gripper_cmd_ac.wait_for_server(timeout_sec=5.0):
+            self.get_logger().error("ParallelGripperCommand action server not available.")
+            return False
+
+        goal = ParallelGripperCommand.Goal()
+        goal.command.name = [joint_name]
+        goal.command.position = [float(position)]
+
+        if max_velocity > 0.0:
+            goal.command.velocity = [float(max_velocity)]
+
+        if max_effort > 0.0:
+            goal.command.effort = [float(max_effort)]
+
+        send_future = self.gripper_cmd_ac.send_goal_async(goal)
+        rclpy.spin_until_future_complete(self, send_future)
+        goal_handle = send_future.result()
+
+        if goal_handle is None or not goal_handle.accepted:
+            self.get_logger().error("Gripper command goal rejected.")
+            return False
+
+        result_future = goal_handle.get_result_async()
+        rclpy.spin_until_future_complete(self, result_future)
+        result = result_future.result()
+
+        if result is None:
+            self.get_logger().error("Failed to get gripper command result.")
+            return False
+
+        self.get_logger().info("Gripper command completed.")
+        self.get_logger().info(
+            f"stalled={result.result.stalled}, reached_goal={result.result.reached_goal}"
         )
+        return True
 
 
 def main():
     rclpy.init()
     node = PlanAndExecuteClient()
 
-    arm_joint_names = ["joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"]
-    arm_start = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-
-    gripper_joint_names = ["left_finger_joint", "right_finger_joint"]
-    gripper_open = [0.01, 0.01]
-    gripper_closed = [0.0, 0.0]
+    gripper_open = 0.0
+    gripper_closed = 0.01
 
     # 1) Plan gripper open using MoveIt joint-space planning
-    gripper_traj = node.plan_gripper_to_joint_positions(
-        group_name="gripper",
-        start_joint_names=gripper_joint_names,
-        start_joint_positions=gripper_closed,
-        goal_joint_names=gripper_joint_names,
-        goal_joint_positions=gripper_open,
-        allowed_planning_time=2.0,
-        num_attempts=3,
+    node.send_gripper_command(
+        position=gripper_open,
+        max_velocity=0.05,
     )
-    if gripper_traj is not None:
-        node.execute_moveit_trajectory(gripper_traj)
 
     # 2) Plan arm motion using the same structure as your original file
     arm_traj = node.plan_arm_to_pose_constraints(
         group_name="arm",
-        link_name="tool0",
+        link_name="gripper_tcp",
         frame_id="world",
-        start_joint_names=arm_joint_names,
-        start_joint_positions=arm_start,
-        goal_xyz=(0.138, 0.0, 0.4714),
-        goal_quat_wxyz=(0.5102, 0.0, 0.8601, 0.0),
-        allowed_planning_time=5.0,
-        num_attempts=5,
-        max_velocity_scaling=0.2,
-        max_acceleration_scaling=0.2,
+        goal_xyz=(0.0, 0.480, 0.1),
+        goal_quat_wxyz=(0.0, 1.0, 0.0, 0.0),
     )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
 
-    # 3) Direct controller examples, without MoveIt execution
-    #    Useful when you already know the target joint positions.
-    node.send_gripper_trajectory(
-        joint_names=gripper_joint_names,
-        positions=gripper_closed,
-        duration_sec=1.0,
+    arm_traj = node.plan_arm_to_pose_constraints(
+        group_name="arm",
+        link_name="gripper_tcp",
+        frame_id="world",
+        goal_xyz=(0.0, 0.480, 0.032),
+        goal_quat_wxyz=(0.0, 1.0, 0.0, 0.0),
     )
+    if arm_traj is not None:
+        node.execute_moveit_trajectory(arm_traj)
 
-    node.send_arm_trajectory(
-        joint_names=arm_joint_names,
-        positions=[0.1, -0.3, 0.2, 0.0, 0.4, 0.0],
-        duration_sec=3.0,
+    node.send_gripper_command(
+        position=gripper_closed,
+        max_velocity=0.05,
     )
+    
+    arm_traj = node.plan_arm_to_pose_constraints(
+        group_name="arm",
+        link_name="gripper_tcp",
+        frame_id="world",
+        goal_xyz=(0.0, 0.480, 0.1),
+        goal_quat_wxyz=(0.0, 1.0, 0.0, 0.0),
+    )
+    if arm_traj is not None:
+        node.execute_moveit_trajectory(arm_traj)
 
     node.destroy_node()
     rclpy.shutdown()
