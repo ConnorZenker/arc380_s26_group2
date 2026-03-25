@@ -1,0 +1,17 @@
+# Goal
+trajectory_msgs/JointTrajectory trajectory
+bool stop_active_motion
+
+---
+# Result
+bool success
+string message
+int32 error_code
+
+---
+# Feedback
+builtin_interfaces/Duration elapsed_time
+int32 current_point_index
+float64[] desired_positions
+float64[] actual_positions
+float64 position_error_norm
