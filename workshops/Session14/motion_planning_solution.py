@@ -3,6 +3,7 @@ from typing import Optional
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
+from rclpy.parameter import Parameter
 
 from builtin_interfaces.msg import Duration
 from sensor_msgs.msg import JointState
@@ -37,6 +38,7 @@ class PlanAndExecuteClient(Node):
 
     def __init__(self):
         super().__init__("plan_and_execute_client")
+        self.set_parameters([Parameter("use_sim_time", value=True)])
 
         # MoveIt planning service
         self.plan_cli = self.create_client(GetMotionPlan, "/plan_kinematic_path")
@@ -423,9 +425,11 @@ class PlanAndExecuteClient(Node):
             self.get_logger().error("Failed to get gripper command result.")
             return False
 
+        res = result.result
         self.get_logger().info("Gripper command completed.")
         self.get_logger().info(
-            f"stalled={result.result.stalled}, reached_goal={result.result.reached_goal}"
+            f"stalled={res.stalled}, reached_goal={res.reached_goal}, "
+            f"pos={list(res.state.position)}, vel={list(res.state.velocity)}, eff={list(res.state.effort)}"
         )
         return True
 
@@ -434,7 +438,7 @@ def main():
     rclpy.init()
     node = PlanAndExecuteClient()
 
-    gripper_open = 0.0
+    gripper_open = 0.00
     gripper_closed = 0.01
 
     node.send_gripper_command(

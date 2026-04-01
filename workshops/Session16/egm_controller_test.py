@@ -14,8 +14,8 @@ point.positions = [0.0, 0.0, 0.0, 0.0, pi/2, 0.0]
 point.time_from_start = Duration(sec=0, nanosec=0)
 trajectory.points.append(point)
 point = JointTrajectoryPoint()
-point.positions = [0.1, 0.1, 0.1, 0.1, pi/2 + 0.1, 0.1]
-point.time_from_start = Duration(sec=3, nanosec=0)
+point.positions = [0.5, 0.1, 0.1, 0.1, pi/2 + 0.1, 0.1]
+point.time_from_start = Duration(sec=2, nanosec=0)
 trajectory.points.append(point)
 
 
