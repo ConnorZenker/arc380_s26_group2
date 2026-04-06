@@ -1,5 +1,6 @@
 import time
 from typing import Optional
+import numpy as np
 
 import rclpy
 from example_interfaces.srv import SetBool
@@ -22,6 +23,7 @@ from sensor_msgs.msg import JointState
 from shape_msgs.msg import SolidPrimitive
 
 from abb_egm_interfaces.action import ExecuteTrajectory
+import motion_planning_helper
 
 
 class EGMClient(Node):
@@ -195,6 +197,18 @@ class EGMClient(Node):
                 tolerance_rpy=ori_tolerance_rpy,
             )
         ]
+        joint_tolerance = np.pi + 0.001
+        goal_joint_names = ['joint_6']
+        goal_joint_positions = [np.pi]
+        constraints.joint_constraints = [
+            self._make_joint_constraint(
+                joint_name=n,
+                position=p,
+                tolerance_above=joint_tolerance,
+                tolerance_below=joint_tolerance,
+            )
+            for n, p in zip(goal_joint_names, goal_joint_positions)
+        ]
         mpr.goal_constraints = [constraints]
 
         mpr.allowed_planning_time = float(allowed_planning_time)
@@ -323,51 +337,106 @@ def main():
     rclpy.init()
     node = EGMClient()
 
-    gripper_open = 0.00
-    gripper_closed = 0.01
+    block_init_pos = [(0.00, 0.48, 0.032),
+                      (0.06, 0.48, 0.032),
+                      (0.12, 0.48, 0.032),
+                      (0.18, 0.48, 0.032),
+                      (0.24, 0.48, 0.032),
+                      (0.00, 0.42, 0.032),
+                      (0.06, 0.42, 0.032)]
+    block_int_quat = [(0,1,0,0),
+                      (0,1,0,0),
+                      (0,1,0,0),
+                      (0,1,0,0),
+                      (0,1,0,0),
+                      (0,1,0,0),
+                      (0,1,0,0)]
+    block_final_pos = [(0.4, 0.22, 0.039),
+                       (0.4, 0.248, 0.039),
+                       (0.414, 0.234, 0.053),
+                       (0.386, 0.234, 0.053),
+                       (0.4, 0.22, 0.067),
+                       (0.4, 0.248, 0.067),
+                       (0.4, 0.234, 0.081)]
+    block_final_quat = [(0,1,0,0),
+                        (0,1,0,0),
+                        (0,0.7071, 0.7071, 0),
+                        (0,0.7071, 0.7071, 0),
+                        (0,1,0,0),
+                        (0,1,0,0),
+                        (0,0.7071, 0.7071, 0)]
 
-    node.send_gripper_command(
-        position=gripper_open,
-        max_velocity=0.05,
-    )
 
     arm_traj = node.plan_arm_to_pose_constraints(
         group_name="arm",
-        link_name="gripper_tcp",
+        link_name="gripper_tcp_calibrated",
         frame_id="world",
-        goal_xyz=(0.0, 0.480, 0.1),
-        goal_quat_wxyz=(0.0, 1.0, 0.0, 0.0),
+        goal_xyz=(0, .48, 0.35),
+        goal_quat_wxyz=(0,1,0,0),
+        max_velocity_scaling = 2
+        )
+    if arm_traj is not None:
+        print(arm_traj)
+        node.execute_moveit_trajectory(arm_traj)
+    # for i in range(len(block_final_pos)):
+    #     motion_planning_helper.pick_and_place(node, "gripper_tcp_calibrated", block_init_pos[i], block_int_quat[i], 
+    #                                          block_final_pos[i], block_final_quat[i])
+    # motion_planning_helper.pick_and_place(node, "gripper_tcp_calibrated", ())
+    # motion_planning_helper.pick_and_place(node, "gripper_tcp_calibrated", (0.00, 0.48, 0.032), (0, 0.999, 0, 0), 
+    #                                         (0.4, 0.22, 0.032), (0,0.7071,0.7071,0))
+    # motion_planning_helper.pick_and_place(node, "gripper_tcp_calibrated", (0.00, 0.48, 0.032), (0, 0.999, 0, 0), 
+    #                                         (0.4, 0.22, 0.032), (0,0.7071,0.7071,0))
+    # motion_planning_helper.pick_and_place(node, "gripper_tcp_calibrated", (0.00, 0.48, 0.032), (0, 0.999, 0, 0), 
+    #                                         (0.4, 0.22, 0.032), (0,0.7071,0.7071,0))
+    # motion_planning_helper.pick_and_place(node, "gripper_tcp_calibrated", (0.00, 0.48, 0.032), (0, 0.999, 0, 0), 
+    #                                         (0.4, 0.22, 0.032), (0,0.7071,0.7071,0))
+    
+
+    # gripper_open = 0.00
+    # gripper_closed = 0.01
+
+    # node.send_gripper_command(
+    #     position=gripper_open,
+    #     max_velocity=0.05,
+    # )
+
+    # arm_traj = node.plan_arm_to_pose_constraints(
+    #     group_name="arm",
+    #     link_name="gripper_tcp",
+    #     frame_id="world",
+    #     goal_xyz=(0.0, 0.480, 0.1),
+    #     goal_quat_wxyz=(0.0, 1.0, 0.0, 0.0),
             
-    )
-    if arm_traj is not None:
-        node.execute_moveit_trajectory(arm_traj)
+    # )
+    # if arm_traj is not None:
+    #     node.execute_moveit_trajectory(arm_traj)
 
-    arm_traj = node.plan_arm_to_pose_constraints(
-        group_name="arm",
-        link_name="gripper_tcp",
-        frame_id="world",
-        goal_xyz=(0.0, 0.480, 0.032),
-        goal_quat_wxyz=(0.0, 1.0, 0.0, 0.0),
-        max_velocity_scaling=0.5,
-    )
-    if arm_traj is not None:
-        node.execute_moveit_trajectory(arm_traj)
+    # arm_traj = node.plan_arm_to_pose_constraints(
+    #     group_name="arm",
+    #     link_name="gripper_tcp",
+    #     frame_id="world",
+    #     goal_xyz=(0.0, 0.480, 0.032),
+    #     goal_quat_wxyz=(0.0, 1.0, 0.0, 0.0),
+    #     max_velocity_scaling=0.5,
+    # )
+    # if arm_traj is not None:
+    #     node.execute_moveit_trajectory(arm_traj)
 
-    node.send_gripper_command(
-        position=gripper_closed,
-        max_velocity=0.05,
-    )
+    # node.send_gripper_command(
+    #     position=gripper_closed,
+    #     max_velocity=0.05,
+    # )
 
-    arm_traj = node.plan_arm_to_pose_constraints(
-        group_name="arm",
-        link_name="gripper_tcp",
-        frame_id="world",
-        goal_xyz=(0.0, 0.480, 0.1),
-        goal_quat_wxyz=(0.0, 1.0, 0.0, 0.0),
-        max_velocity_scaling=0.5,
-    )
-    if arm_traj is not None:
-        node.execute_moveit_trajectory(arm_traj)
+    # arm_traj = node.plan_arm_to_pose_constraints(
+    #     group_name="arm",
+    #     link_name="gripper_tcp",
+    #     frame_id="world",
+    #     goal_xyz=(0.0, 0.480, 0.1),
+    #     goal_quat_wxyz=(0.0, 1.0, 0.0, 0.0),
+    #     max_velocity_scaling=0.5,
+    # )
+    # if arm_traj is not None:
+    #     node.execute_moveit_trajectory(arm_traj)
 
     node.destroy_node()
     rclpy.shutdown()
