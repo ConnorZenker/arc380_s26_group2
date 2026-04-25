@@ -61,10 +61,7 @@ RUN apt-get update && apt-get install -y \
 # ── rosdep init ───────────────────────────────────────────────────────────────
 RUN rosdep init && rosdep update
 
-RUN python3 -m pip install --no-cache-dir --break-system-packages --ignore-installed \
-    "protobuf==6.31.1" \
-    "opencv-contrib-python-headless"
-
+RUN python3 -m pip install --no-cache-dir --break-system-packages "protobuf==6.31.1"
 
 FROM base AS workspace
 
@@ -100,6 +97,9 @@ ENV DISPLAY=:1
 ENV GZ_SIM_RESOURCE_PATH=\
 /ros2_ws/install/abb_irb120_description/share:\
 /ros2_ws/install/abb_irb120_gazebo/share/abb_irb120_gazebo/models
+
+RUN python3 -m pip install --no-cache-dir --break-system-packages --ignore-installed \
+    "opencv-contrib-python-headless"
 
 RUN echo 'source /opt/ros/jazzy/setup.bash' >> /etc/bash.bashrc && \
     echo 'source /ros2_ws/install/setup.bash' >> /etc/bash.bashrc
