@@ -198,8 +198,8 @@ class EGMClient(Node):
             )
         ]
         joint_tolerance = np.pi + 0.001
-        goal_joint_names = ['joint_6']
-        goal_joint_positions = [np.pi]
+        goal_joint_names = ['joint_4', 'joint_6']
+        goal_joint_positions = [np.pi, np.pi]
         constraints.joint_constraints = [
             self._make_joint_constraint(
                 joint_name=n,
@@ -338,24 +338,35 @@ def main():
     node = EGMClient()
     link = "gripper_tcp_calibrated"
 
-    regrip_coord = (0.4, 0.22, 0.0605)
-    regrip_quat_0 = (0.5, -0.5, 0.5, 0.5)
+    regrip_offset = 0.008
+    regrip_coord_0 = (0.44, 0.22, 0.0605+0.014)
+    regrip_coord_1 = (0.44 - regrip_offset, 0.22, 0.0605+0.014)
+    # regrip_coord = (0.3, 0.3, 0.1)
+    regrip_quat_0 = (0.5,-0.5,0.5,0.5)
+    # regrip_quat_0 = (0.7071, -0.7071, 0, 0)
     regrip_quat_1 = (0.7071, 0, 0.7071, 0)
 
-    block_pos = [(0.4, 0.4185,0.044),
-                 (0.4, 0.3815,0.044),
-                 (0.4185, 0.4, 0.067),
-                 (0.3815,0.4,0.067),
-                 (0.4, 0.4185, 0.090),
-                 (0.4, 0.3815, 0.090),
-                 (0.4, 0.4, 0.113)]
+    center_x = 0.33
+    center_y = 0.38
+    base_z = 0.021
+    block_pos = [(center_x, center_y + 0.0185, base_z + 0.023),
+                 (center_x, center_y - 0.0185, base_z + 0.023),
+                 (center_x + 0.0185, center_y, base_z + 0.023*2),
+                 (center_x - 0.0185, center_y, base_z + 0.023*2),
+                 (center_x, center_y + 0.0185, base_z + 0.023*3),
+                 (center_x, center_y - 0.0185, base_z + 0.023*3),
+                 (center_x + 0.0185, center_y, base_z + 0.023*4),
+                 (center_x - 0.0185, center_y, base_z + 0.023*4),
+                 (center_x, center_y, base_z + 0.023*5)]
     block_quat = [(0,1,0,0),
                   (0,1,0,0),
                   (0,0.7071, 0.7071, 0),
                   (0,0.7071, 0.7071, 0),
                   (0,1,0,0),
                   (0,1,0,0),
-                  (0,0.7071, 0.7071, 0)]
+                  (0,0.7071, 0.7071, 0),
+                  (0,0.7071, 0.7071, 0),
+                  (0,1, 0, 0)]
     
     # motion_planning_helper.get_new_block(node, link, (0, 0.3, 0.032), (0,1,0,0))
     
@@ -371,13 +382,15 @@ def main():
     #     # arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
     #     node.execute_moveit_trajectory(arm_traj)
 
-    motion_planning_helper.get_new_block(node, link, (0.4, 0.22, 0.028), (0,1,0,0))
-    motion_planning_helper.correct_position(node, link, (0.4, 0.22, 0.028), (0,1,0,0), False)
-    for i in range(len(block_pos)):
-        motion_planning_helper.get_new_block(node, link, (0, 0.3, 0.028), (0,1,0,0))
-        motion_planning_helper.correct_position(node, link, (0, 0.3, 0.028), (0,1,0,0), False)
-        motion_planning_helper.pick_and_place(node, link, (0, 0.3, 0.028), (0,1,0,0), regrip_coord, regrip_quat_0)
-        motion_planning_helper.pick_and_place(node, link, regrip_coord, regrip_quat_1, block_pos[i], block_quat[i])
+    # motion_planning_helper.get_new_block(node, link, (0.44, 0.22, 0.028), (0,1,0,0))
+    # motion_planning_helper.correct_position(node, link, (0.4, 0.22, 0.028), (0,1,0,0), False)
+    for i in range(0, len(block_pos)):
+        ## motion_planning_helper.get_new_block(node, link, (0, 0.3, 0.028), (0,1,0,0))
+        ## motion_planning_helper.correct_position(node, link, (0, 0.3, 0.028), (0,1,0,0), False)
+        ## motion_planning_helper.pick_and_place(node, link, (0, 0.3, 0.028), (0,1,0,0), regrip_coord, regrip_quat_0)
+        motion_planning_helper.get_new_block(node, link, regrip_coord_0, regrip_quat_0)
+        ## motion_planning_helper.pick_and_place(node,link, regrip_coord, regrip_quat_0, regrip_coord, regrip_quat_1)
+        motion_planning_helper.pick_and_place(node, link, regrip_coord_1, regrip_quat_1, block_pos[i], block_quat[i])
         motion_planning_helper.correct_position(node, link, block_pos[i], block_quat[i], True)
 
 

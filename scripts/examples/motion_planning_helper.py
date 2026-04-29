@@ -8,6 +8,8 @@ gripper_open = 0.0
 gripper_closed = 0.01
 safe_height = 0.35
 low_height = 0.15
+slow_move = 0.04
+fast_move = 0.08
 
 def plan_poses(node, coords, quats, grips):
 
@@ -64,10 +66,10 @@ def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
         frame_id="world",
         goal_xyz=(coord_0[0], coord_0[1], safe_height),
         goal_quat_wxyz=quat_0,
-        max_velocity_scaling = 0.05
+        max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
-        arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
+        # arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
         node.execute_moveit_trajectory(arm_traj)
 
     arm_traj = node.plan_arm_to_pose_constraints(
@@ -76,10 +78,10 @@ def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
         frame_id="world",
         goal_xyz=(coord_0[0], coord_0[1], low_height),
         goal_quat_wxyz=quat_0,
-        max_velocity_scaling = 0.05
+        max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
-        arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
+        # arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
         node.execute_moveit_trajectory(arm_traj)
 
     arm_traj = node.plan_arm_to_pose_constraints(
@@ -88,6 +90,7 @@ def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
         frame_id="world",
         goal_xyz=coord_0,
         goal_quat_wxyz=quat_0,
+        max_velocity_scaling = slow_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -113,7 +116,7 @@ def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
         frame_id="world",
         goal_xyz=(coord_0[0], coord_0[1], low_height),
         goal_quat_wxyz=quat_0,
-
+         max_velocity_scaling = slow_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -124,10 +127,10 @@ def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
         frame_id="world",
         goal_xyz=(coord_0[0], coord_0[1], safe_height),
         goal_quat_wxyz=quat_0,
-        max_velocity_scaling = 0.05
+        max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
-        arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
+        # arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
         node.execute_moveit_trajectory(arm_traj)
 
     arm_traj = node.plan_arm_to_pose_constraints(
@@ -136,10 +139,10 @@ def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
         frame_id="world",
         goal_xyz=(coord_1[0], coord_1[1], safe_height),
         goal_quat_wxyz=quat_1,
-        max_velocity_scaling = 0.05
+        max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
-        arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
+        # arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
         node.execute_moveit_trajectory(arm_traj)
 
     arm_traj = node.plan_arm_to_pose_constraints(
@@ -148,10 +151,10 @@ def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
         frame_id="world",
         goal_xyz=(coord_1[0], coord_1[1], low_height),
         goal_quat_wxyz=quat_1,
-        max_velocity_scaling = 0.05
+        max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
-        arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
+        # arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
         node.execute_moveit_trajectory(arm_traj)
     
     arm_traj = node.plan_arm_to_pose_constraints(
@@ -160,6 +163,7 @@ def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
         frame_id="world",
         goal_xyz=coord_1,
         goal_quat_wxyz=quat_1,
+        max_velocity_scaling = slow_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -175,6 +179,7 @@ def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
         frame_id="world",
         goal_xyz=(coord_1[0], coord_1[1], low_height),
         goal_quat_wxyz=quat_1,
+        max_velocity_scaling = slow_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -185,16 +190,16 @@ def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
         frame_id="world",
         goal_xyz=(coord_1[0], coord_1[1], safe_height),
         goal_quat_wxyz=quat_1,
-        max_velocity_scaling = 0.5
+        max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
-        arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
+        # arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
         node.execute_moveit_trajectory(arm_traj)
     
 def correct_position(node, link, coord, quat, onEdge):
-    tool_coord = (-0.016, 0.551, 0.092)
+    tool_coord = (-0.022, 0.548, 0.092)
     tool_quat = (0,1,0,0)
-    offset_x = 0.005
+    offset_x = 0.01
     offset_y = 0.005
 
     if onEdge:
@@ -230,20 +235,20 @@ def correct_position(node, link, coord, quat, onEdge):
                            0,
                            0,
                            0,
-                           (0.051/2) + (0.023/2) + 0.002,
+                           (0.051/2) + (0.023/2) + offset_y,
                            (0.051/2) + (0.023/2),
-                           -(0.051/2) - (0.023/2) - 0.002,
+                           -(0.051/2) - (0.023/2) - offset_y,
                            -(0.051/2) - (0.023/2)]
-        coord_0_offsets = [(width/2) + (0.023/2) + 0.005,
+        coord_0_offsets = [(width/2) + (0.023/2) + offset_x,
                            (width/2) + (0.023/2) - 0.001,
-                           -(width/2) - (0.023/2)-0.005,
+                           -(width/2) - (0.023/2)- offset_x,
                            -(width/2) - (0.023/2),
                            0,
                            0,
                            0,
                            0]
-        quat_offsets = [(0,0.7071,0.7071,0),
-                        (0,0.7071,-0.7071,0),
+        quat_offsets = [(0, 0.7071, -0.7071, 0),
+                        (0,0.7071,0.7071,0),
                         (0,1,0,0),
                         (0,0,1,0)]
 
@@ -252,16 +257,16 @@ def correct_position(node, link, coord, quat, onEdge):
         max_velocity=0.05,
     )
 
-    arm_traj = node.plan_arm_to_pose_constraints(
-        group_name="arm",
-        link_name=link,
-        frame_id="world",
-        goal_xyz=(tool_coord[0], tool_coord[1], safe_height),
-        goal_quat_wxyz=tool_quat,
-        max_velocity_scaling = 0.05
-        )
-    if arm_traj is not None:
-        node.execute_moveit_trajectory(arm_traj)
+    # arm_traj = node.plan_arm_to_pose_constraints(
+    #     group_name="arm",
+    #     link_name=link,
+    #     frame_id="world",
+    #     goal_xyz=(tool_coord[0], tool_coord[1], safe_height),
+    #     goal_quat_wxyz=tool_quat,
+    #     max_velocity_scaling = fast_move
+    #     )
+    # if arm_traj is not None:
+    #     node.execute_moveit_trajectory(arm_traj)
 
     arm_traj = node.plan_arm_to_pose_constraints(
         group_name="arm",
@@ -269,7 +274,7 @@ def correct_position(node, link, coord, quat, onEdge):
         frame_id="world",
         goal_xyz=(tool_coord[0], tool_coord[1], low_height),
         goal_quat_wxyz=tool_quat,
-        max_velocity_scaling = 0.05
+        max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -280,7 +285,7 @@ def correct_position(node, link, coord, quat, onEdge):
         frame_id="world",
         goal_xyz=tool_coord,
         goal_quat_wxyz=tool_quat,
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = slow_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -296,7 +301,7 @@ def correct_position(node, link, coord, quat, onEdge):
         frame_id="world",
         goal_xyz=(tool_coord[0], tool_coord[1], tool_coord[2] + 0.02),
         goal_quat_wxyz=tool_quat,
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = slow_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -305,9 +310,9 @@ def correct_position(node, link, coord, quat, onEdge):
         group_name="arm",
         link_name=link,
         frame_id="world",
-        goal_xyz=(tool_coord[0], tool_coord[1] - 0.04, tool_coord[2] + 0.02),
+        goal_xyz=(tool_coord[0], tool_coord[1] - 0.06, tool_coord[2] + 0.02),
         goal_quat_wxyz=tool_quat,
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = slow_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -316,9 +321,9 @@ def correct_position(node, link, coord, quat, onEdge):
         group_name="arm",
         link_name=link,
         frame_id="world",
-        goal_xyz=(tool_coord[0], tool_coord[1] - 0.04, safe_height),
+        goal_xyz=(tool_coord[0], tool_coord[1] - 0.06, safe_height),
         goal_quat_wxyz=tool_quat,
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -329,7 +334,7 @@ def correct_position(node, link, coord, quat, onEdge):
         frame_id="world",
         goal_xyz=(coord[0] + coord_0_offsets[0], coord[1] + coord_1_offsets[0], safe_height),
         goal_quat_wxyz=quat_offsets[0],
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -342,7 +347,7 @@ def correct_position(node, link, coord, quat, onEdge):
         frame_id="world",
         goal_xyz=(coord[0] + coord_0_offsets[2*i], coord[1] + coord_1_offsets[2*i], coord[2] - height + tool_coord[2] + 0.05),
         goal_quat_wxyz=quat_offsets[i],
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = fast_move
         )
         if arm_traj is not None:
             node.execute_moveit_trajectory(arm_traj)
@@ -353,7 +358,7 @@ def correct_position(node, link, coord, quat, onEdge):
         frame_id="world",
         goal_xyz=(coord[0] + coord_0_offsets[2*i], coord[1] + coord_1_offsets[2*i], coord[2] - height + tool_coord[2] - 0.021 + 0.001),
         goal_quat_wxyz=quat_offsets[i],
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = slow_move
         )
         if arm_traj is not None:
             node.execute_moveit_trajectory(arm_traj)
@@ -364,7 +369,7 @@ def correct_position(node, link, coord, quat, onEdge):
         frame_id="world",
         goal_xyz=(coord[0] + coord_0_offsets[2*i + 1], coord[1] + coord_1_offsets[2*i + 1], coord[2] - height + tool_coord[2] - 0.021 + 0.001),
         goal_quat_wxyz=quat_offsets[i],
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = fast_move
         )
         if arm_traj is not None:
             node.execute_moveit_trajectory(arm_traj)
@@ -375,7 +380,7 @@ def correct_position(node, link, coord, quat, onEdge):
         frame_id="world",
         goal_xyz=(coord[0] + coord_0_offsets[2*i + 1], coord[1] + coord_1_offsets[2*i + 1], coord[2] - height + tool_coord[2] + 0.05),
         goal_quat_wxyz=quat_offsets[i],
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = slow_move
         )
         if arm_traj is not None:
             node.execute_moveit_trajectory(arm_traj)
@@ -386,7 +391,7 @@ def correct_position(node, link, coord, quat, onEdge):
         frame_id="world",
         goal_xyz=(coord[0] + coord_0_offsets[7], coord[1] + coord_1_offsets[7], safe_height),
         goal_quat_wxyz=quat_offsets[3],
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -395,9 +400,9 @@ def correct_position(node, link, coord, quat, onEdge):
         group_name="arm",
         link_name=link,
         frame_id="world",
-        goal_xyz=(tool_coord[0], tool_coord[1] - 0.04, safe_height),
+        goal_xyz=(tool_coord[0], tool_coord[1] - 0.06, safe_height),
         goal_quat_wxyz=tool_quat,
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -406,9 +411,9 @@ def correct_position(node, link, coord, quat, onEdge):
         group_name="arm",
         link_name=link,
         frame_id="world",
-        goal_xyz=(tool_coord[0], tool_coord[1] - 0.04, tool_coord[2] + 0.02),
+        goal_xyz=(tool_coord[0], tool_coord[1] - 0.06, tool_coord[2] + 0.02),
         goal_quat_wxyz=tool_quat,
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -419,7 +424,7 @@ def correct_position(node, link, coord, quat, onEdge):
         frame_id="world",
         goal_xyz=(tool_coord[0], tool_coord[1], tool_coord[2] + 0.02),
         goal_quat_wxyz=tool_quat,
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = slow_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -430,7 +435,7 @@ def correct_position(node, link, coord, quat, onEdge):
         frame_id="world",
         goal_xyz=(tool_coord[0], tool_coord[1], tool_coord[2] + 0.01),
         goal_quat_wxyz=tool_quat,
-        max_velocity_scaling = 0.01
+        max_velocity_scaling = slow_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -446,22 +451,22 @@ def correct_position(node, link, coord, quat, onEdge):
         frame_id="world",
         goal_xyz=(tool_coord[0], tool_coord[1], low_height),
         goal_quat_wxyz=tool_quat,
-        max_velocity_scaling = 0.05
+        max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
 
 
-    arm_traj = node.plan_arm_to_pose_constraints(
-        group_name="arm",
-        link_name=link,
-        frame_id="world",
-        goal_xyz=(tool_coord[0], tool_coord[1], safe_height),
-        goal_quat_wxyz=tool_quat,
-        max_velocity_scaling = 0.05
-        )
-    if arm_traj is not None:
-        node.execute_moveit_trajectory(arm_traj)
+    # arm_traj = node.plan_arm_to_pose_constraints(
+    #     group_name="arm",
+    #     link_name=link,
+    #     frame_id="world",
+    #     goal_xyz=(tool_coord[0], tool_coord[1], safe_height),
+    #     goal_quat_wxyz=tool_quat,
+    #     max_velocity_scaling = fast_move
+    #     )
+    # if arm_traj is not None:
+    #     node.execute_moveit_trajectory(arm_traj)
     
 def get_new_block(node, link, coord, quat):
 
@@ -471,7 +476,7 @@ def get_new_block(node, link, coord, quat):
         frame_id="world",
         goal_xyz=(0.38, 0, 0.4),
         goal_quat_wxyz=(0,1,0,0),
-        max_velocity_scaling = 0.05
+        max_velocity_scaling = 0.1
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
@@ -529,8 +534,11 @@ def get_new_block(node, link, coord, quat):
     img_data = corrected_img.reshape((-1, 3))
     img_data = np.float32(img_data)
 
+    contrast_const = 2
+    img_data = np.clip(contrast_const*(img_data-128) + 128, 0, 255)
+
     # Define the number of clusters
-    k = 3
+    k = 6
 
     # Define the criteria for the k-means algorithm
     # This is a tuple with three elements: (type of termination criteria, maximum number of iterations, epsilon/required accuracy)
@@ -547,7 +555,8 @@ def get_new_block(node, link, coord, quat):
     kmeans_img = kmeans_data.reshape(corrected_img.shape)
     labels = labels.reshape(corrected_img.shape[:2])
 
-    beige = np.array([90, 100, 120])
+    # beige = np.array([90, 100, 120])
+    beige = np.array([0, 60, 90])
     distances = np.linalg.norm(centers - beige, axis=1)
     beige_cluster_label = np.argmin(distances)
 
@@ -578,12 +587,13 @@ def get_new_block(node, link, coord, quat):
     else:
         angle = 90+rect[2]
 
-    print(angle)
+    angle = angle + 180
     rot_mat = angle_convert.euler_angles_to_rotation_matrix([angle-90, 0, 180])
     block_quat = angle_convert.rotation_matrix_to_quaternion(rot_mat)
-    block_coord = (-0.068-y_m, 0.271 + x_m , 0.028)
-    print(block_coord)
-    print(block_quat)
+    # block_coord = (-0.068-y_m  .271 + x_m, .028)
+    block_coord = (-0.068 - y_m + 0.004, 0.271 + x_m, 0.028)
+    # print(block_coord)
+    # print(block_quat)
 
     pick_and_place(node, link, block_coord, block_quat, coord, quat)
 
