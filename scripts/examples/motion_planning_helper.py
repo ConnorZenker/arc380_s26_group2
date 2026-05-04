@@ -11,6 +11,8 @@ low_height = 0.15
 slow_move = 0.04
 fast_move = 0.08
 
+# Function takes in list of coordinates, quaternions, and boolean grips
+# and executes them in sequence through motion planner
 def plan_poses(node, coords, quats, grips):
 
     node.send_gripper_command(
@@ -54,6 +56,8 @@ def plan_poses(node, coords, quats, grips):
 
         prev_grip = grips[i]
 
+# Goes to coordinate 0 and quaternion 0, picks up block, and drops off
+# at coordinate 1 and quaternion 1
 def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
     node.send_gripper_command(
         position=gripper_open,
@@ -69,7 +73,6 @@ def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
         max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
-        # arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
         node.execute_moveit_trajectory(arm_traj)
 
     arm_traj = node.plan_arm_to_pose_constraints(
@@ -81,7 +84,6 @@ def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
         max_velocity_scaling = fast_move
         )
     if arm_traj is not None:
-        # arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
         node.execute_moveit_trajectory(arm_traj)
 
     arm_traj = node.plan_arm_to_pose_constraints(
@@ -196,6 +198,9 @@ def pick_and_place(node, link, coord_0, quat_0, coord_1, quat_1):
         # arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
         node.execute_moveit_trajectory(arm_traj)
     
+# Takes in intended brick pose and runs tool path to correct up to
+# offsets. onEdge determines if the brick is standing on edge, adjusting
+# tool path
 def correct_position(node, link, coord, quat, onEdge):
     tool_coord = (-0.022, 0.548, 0.092)
     tool_quat = (0,1,0,0)
@@ -209,6 +214,7 @@ def correct_position(node, link, coord, quat, onEdge):
         width = 0.023
         height = 0.014/2
     
+    # correction sequence of positions
     if quat == (0,1,0,0):
         coord_0_offsets = [0,
                            0,
@@ -257,17 +263,7 @@ def correct_position(node, link, coord, quat, onEdge):
         max_velocity=0.05,
     )
 
-    # arm_traj = node.plan_arm_to_pose_constraints(
-    #     group_name="arm",
-    #     link_name=link,
-    #     frame_id="world",
-    #     goal_xyz=(tool_coord[0], tool_coord[1], safe_height),
-    #     goal_quat_wxyz=tool_quat,
-    #     max_velocity_scaling = fast_move
-    #     )
-    # if arm_traj is not None:
-    #     node.execute_moveit_trajectory(arm_traj)
-
+    # Tool grabbing sequence
     arm_traj = node.plan_arm_to_pose_constraints(
         group_name="arm",
         link_name=link,
@@ -328,6 +324,7 @@ def correct_position(node, link, coord, quat, onEdge):
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
 
+    # Tool positions correction sequence
     arm_traj = node.plan_arm_to_pose_constraints(
         group_name="arm",
         link_name=link,
@@ -396,6 +393,7 @@ def correct_position(node, link, coord, quat, onEdge):
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
 
+    # Tool return sequence
     arm_traj = node.plan_arm_to_pose_constraints(
         group_name="arm",
         link_name=link,
@@ -455,21 +453,12 @@ def correct_position(node, link, coord, quat, onEdge):
         )
     if arm_traj is not None:
         node.execute_moveit_trajectory(arm_traj)
-
-
-    # arm_traj = node.plan_arm_to_pose_constraints(
-    #     group_name="arm",
-    #     link_name=link,
-    #     frame_id="world",
-    #     goal_xyz=(tool_coord[0], tool_coord[1], safe_height),
-    #     goal_quat_wxyz=tool_quat,
-    #     max_velocity_scaling = fast_move
-    #     )
-    # if arm_traj is not None:
-    #     node.execute_moveit_trajectory(arm_traj)
     
+# Perception pipeline to detect brick, then pick and place to coord and
+# quaternion
 def get_new_block(node, link, coord, quat):
 
+    # return to home position to take image
     arm_traj = node.plan_arm_to_pose_constraints(
         group_name="arm",
         link_name=link,
@@ -482,8 +471,6 @@ def get_new_block(node, link, coord, quat):
         node.execute_moveit_trajectory(arm_traj)
 
     img, depth, meta = request_capture()
-    # img_path = "C:\\Users\\arc380\\arc380_s26_group2\\realsense_shared\\color.png"
-    # img = cv2.imread(img_path)
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     # Load the predefined dictionary where our markers are printed from
