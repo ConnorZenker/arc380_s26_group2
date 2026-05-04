@@ -338,14 +338,14 @@ def main():
     node = EGMClient()
     link = "gripper_tcp_calibrated"
 
+    # Regripping coordinates (initial pose and regrip pose)
     regrip_offset = 0.008
     regrip_coord_0 = (0.44, 0.22, 0.0605+0.014)
     regrip_coord_1 = (0.44 - regrip_offset, 0.22, 0.0605+0.014)
-    # regrip_coord = (0.3, 0.3, 0.1)
     regrip_quat_0 = (0.5,-0.5,0.5,0.5)
-    # regrip_quat_0 = (0.7071, -0.7071, 0, 0)
     regrip_quat_1 = (0.7071, 0, 0.7071, 0)
 
+    # Tower info
     center_x = 0.33
     center_y = 0.38
     base_z = 0.021
@@ -368,135 +368,12 @@ def main():
                   (0,0.7071, 0.7071, 0),
                   (0,1, 0, 0)]
     
-    # motion_planning_helper.get_new_block(node, link, (0, 0.3, 0.032), (0,1,0,0))
-    
-    # arm_traj = node.plan_arm_to_pose_constraints(
-    #     group_name="arm",
-    #     link_name="gripper_tcp_calibrated",
-    #     frame_id="world",
-    #     goal_xyz=regrip_coord,
-    #     goal_quat_wxyz=regrip_quat_0,
-    #     max_velocity_scaling = 0.5
-    #     )
-    # if arm_traj is not None:
-    #     # arm_traj.joint_trajectory.points = [arm_traj.joint_trajectory.points[i] for i in range(len(arm_traj.joint_trajectory.points)) if (i % 5) == 0]
-    #     node.execute_moveit_trajectory(arm_traj)
-
-    # motion_planning_helper.get_new_block(node, link, (0.44, 0.22, 0.028), (0,1,0,0))
-    # motion_planning_helper.correct_position(node, link, (0.4, 0.22, 0.028), (0,1,0,0), False)
+    # Tower build sequence
     for i in range(0, len(block_pos)):
-        ## motion_planning_helper.get_new_block(node, link, (0, 0.3, 0.028), (0,1,0,0))
-        ## motion_planning_helper.correct_position(node, link, (0, 0.3, 0.028), (0,1,0,0), False)
-        ## motion_planning_helper.pick_and_place(node, link, (0, 0.3, 0.028), (0,1,0,0), regrip_coord, regrip_quat_0)
         motion_planning_helper.get_new_block(node, link, regrip_coord_0, regrip_quat_0)
-        ## motion_planning_helper.pick_and_place(node,link, regrip_coord, regrip_quat_0, regrip_coord, regrip_quat_1)
         motion_planning_helper.pick_and_place(node, link, regrip_coord_1, regrip_quat_1, block_pos[i], block_quat[i])
         motion_planning_helper.correct_position(node, link, block_pos[i], block_quat[i], True)
 
-
-
-    # block_init_pos = [(0.16053, 0.42436, 0.1),]
-    #                 #   (0.06, 0.48, 0.032),
-    #                 #   (0.12, 0.48, 0.032),
-    #                 #   (0.18, 0.48, 0.032),
-    #                 #   (0.24, 0.48, 0.032),
-    #                 #   (0.00, 0.42, 0.032),
-    #                 #   (0.06, 0.42, 0.032)]
-    # block_int_quat = [(0,1,0,0),]
-    #                 #   (0,1,0,0),
-    #                 #   (0,1,0,0),
-    #                 #   (0,1,0,0),
-    #                 #   (0,1,0,0),
-    #                 #   (0,1,0,0),
-    #                 #   (0,1,0,0)]
-    # block_final_pos = [(0.4, 0.22, 0.039),]
-    #                 #    (0.4, 0.248, 0.039),
-    #                 #    (0.414, 0.234, 0.053),
-    #                 #    (0.386, 0.234, 0.053),
-    #                 #    (0.4, 0.22, 0.067),
-    #                 #    (0.4, 0.248, 0.067),
-    #                 #    (0.4, 0.234, 0.081)]
-    # block_final_quat = [(0,1,0,0),]
-    #                     # (0,1,0,0),
-    #                     # (0,0.7071, 0.7071, 0),
-    #                     # (0,0.7071, 0.7071, 0),
-    #                     # (0,1,0,0),
-    #                     # (0,1,0,0),
-    #                     # (0,0.7071, 0.7071, 0)]
-
-
-    # arm_traj = node.plan_arm_to_pose_constraints(
-    #     group_name="arm",
-    #     link_name="gripper_tcp_calibrated",
-    #     frame_id="world",
-    #     goal_xyz=(0, .48, 0.35),
-    #     goal_quat_wxyz=(0,1,0,0),
-    #     max_velocity_scaling = 0.1
-    #     )
-    # if arm_traj is not None:
-    #     node.execute_moveit_trajectory(arm_traj)
-    # for i in range(len(block_final_pos)):
-    #     motion_planning_helper.pick_and_place(node, "gripper_tcp_calibrated", block_init_pos[i], block_int_quat[i], 
-    #                                          block_final_pos[i], block_final_quat[i])
-        # motion_planning_helper.correct_position(node, "gripper_tcp_calibrated", block_final_pos[i], block_final_quat[i])
-        
-
-    # motion_planning_helper.pick_and_place(node, "gripper_tcp_calibrated", ())
-    # motion_planning_helper.pick_and_place(node, "gripper_tcp_calibrated", (0.00, 0.48, 0.032), (0, 0.999, 0, 0), 
-    #                                         (0.4, 0.22, 0.032), (0,0.7071,0.7071,0))
-    # motion_planning_helper.pick_and_place(node, "gripper_tcp_calibrated", (0.00, 0.48, 0.032), (0, 0.999, 0, 0), 
-    #                                         (0.4, 0.22, 0.032), (0,0.7071,0.7071,0))
-    # motion_planning_helper.pick_and_place(node, "gripper_tcp_calibrated", (0.00, 0.48, 0.032), (0, 0.999, 0, 0), 
-    #                                         (0.4, 0.22, 0.032), (0,0.7071,0.7071,0))
-    # motion_planning_helper.pick_and_place(node, "gripper_tcp_calibrated", (0.00, 0.48, 0.032), (0, 0.999, 0, 0), 
-    #                                         (0.4, 0.22, 0.032), (0,0.7071,0.7071,0))
-    
-
-    # gripper_open = 0.00
-    # gripper_closed = 0.01
-
-    # node.send_gripper_command(
-    #     position=gripper_open,
-    #     max_velocity=0.05,
-    # )
-
-    # arm_traj = node.plan_arm_to_pose_constraints(
-    #     group_name="arm",
-    #     link_name="gripper_tcp",
-    #     frame_id="world",
-    #     goal_xyz=(0.0, 0.480, 0.1),
-    #     goal_quat_wxyz=(0.0, 1.0, 0.0, 0.0),
-            
-    # )
-    # if arm_traj is not None:
-    #     node.execute_moveit_trajectory(arm_traj)
-
-    # arm_traj = node.plan_arm_to_pose_constraints(
-    #     group_name="arm",
-    #     link_name="gripper_tcp",
-    #     frame_id="world",
-    #     goal_xyz=(0.0, 0.480, 0.032),
-    #     goal_quat_wxyz=(0.0, 1.0, 0.0, 0.0),
-    #     max_velocity_scaling=0.5,
-    # )
-    # if arm_traj is not None:
-    #     node.execute_moveit_trajectory(arm_traj)
-
-    # node.send_gripper_command(
-    #     position=gripper_closed,
-    #     max_velocity=0.05,
-    # )
-
-    # arm_traj = node.plan_arm_to_pose_constraints(
-    #     group_name="arm",
-    #     link_name="gripper_tcp",
-    #     frame_id="world",
-    #     goal_xyz=(0.0, 0.480, 0.1),
-    #     goal_quat_wxyz=(0.0, 1.0, 0.0, 0.0),
-    #     max_velocity_scaling=0.5,
-    # )
-    # if arm_traj is not None:
-    #     node.execute_moveit_trajectory(arm_traj)
 
     node.destroy_node()
     rclpy.shutdown()
